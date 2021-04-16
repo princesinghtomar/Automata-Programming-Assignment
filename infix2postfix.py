@@ -16,7 +16,7 @@ def infix_to_postfix(formula):
                 output += stack.pop()
             stack.pop() # pop '('
         else:
-            while stack and stack[-1] != '(' and PRIORITY[ch] <= PRIORITY[stack[-1]]:
+            while stack and stack[-1] != '(' and PRIORITY[ch] >= PRIORITY[stack[-1]]:
                 output += stack.pop()
             stack.append(ch)
     # leftover
