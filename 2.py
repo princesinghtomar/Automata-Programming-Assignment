@@ -78,6 +78,8 @@ if __name__ == "__main__":
                     for i in lett: table[-1].append([])
         for i in range(done_states,total_states):
             done_states +=1
+            
+
     print("--")
     print(states)
     print(table)
