@@ -1,87 +1,110 @@
-import numpy as np
-import json
 import sys
+import json
+import numpy as np
+import itertools as it
+
+def printout(DFA):
+    with open(sys.argv[2],"w+") as abc:
+        json.dump(DFA,abc)
 
 def getinput():
     try:
         assert(len(sys.argv)==3)
         # take input from file
-        with open("./NFA.json",'r') as kbc:
+        with open(sys.argv[1],'r') as kbc:
             input_nfa = json.load(kbc)
         return input_nfa
     except:
         print("Enter Correct Values")
         exit(1)
 
-def rstatestring(s):
-    st = ""
-    if(type(s) is not str):
-        for i in range(0,len(s)):
-            if(i == 0):
-                st += s[i]
-            else:
-                st += " " + s[i]
-        return st
+def bfs(vis,i,epsilon):
+    if vis[i] == 1: return epsilon[i]
+    if(vis[i] != 1): vis[i]=1
+    for j in range(0,len(transition_matrix[i][k])): epsilon[i] =epsilon + bfs(vis,mapp_states[transition_matrix[i][k][j]],epsilon)
+    return epsilon[i]
 
-def printout(output):
-    with open(sys.argv[2],"w") as abc:
-        json.dump(a,abc)
+if __name__ == '__main__':
+    NFA = getinput()
+    states = NFA["states"].copy()
+    letters = NFA["letters"].copy()
+    final_letters = letters.copy()
+    letters.append('$')
+    transition_function = NFA["transition_function"].copy()
+    start_states = NFA["start_states"].copy()
+    end_states = NFA["final_states"].copy()
+    epsilon = []
+    transition_matrix = []
+    final_start_state = []
+    final_states = []
+    final_end_states = []
+    final_start_state = final_start_state + start_states 
+    mapp_letters = {}
+    mapp_states = {}
+    final_end_states = []
+    final_transition_function = []
+        
+    for r in range(0,len(states)+1):
+        combinations_list = [list(ele) for ele in list(it.combinations(states, r))]
+        final_states = final_states + combinations_list
 
-if __name__ == "__main__":
-    nfa = getinput()
-    lett = {}
-    state_dict = {}
-    for i in range(0,len(nfa['letters'])):
-        lett[nfa['letters'][i]] = i
-    states = [['$']]
-    table = [['$']]
-    for i in lett: table[0].append([])
-    for i in nfa['states']:
-        states.append([i])
-        table.append([i])
-        for i in lett: table[-1].append([])
+    for i in range(0,len(states)): 
+        tmp = []
+        mapp_states[states[i]] = i
+        for j in range(0,len(letters)): tmp.append([])
+        transition_matrix.append(tmp)
+
+    for i in range(0,len(letters)): mapp_letters[letters[i]] = i
+    k = mapp_letters['$']
+
+    for i in range(0,len(transition_function)):
+        input_letter = mapp_letters[transition_function[i][1]]
+        initial_state = mapp_states[transition_function[i][0]]
+        transition_matrix[initial_state][input_letter].append(transition_function[i][2])
+
+    for i in range(0,len(states)): epsilon.append(transition_matrix[i][k])
+    # print(epsilon)
+    vis = list(it.repeat(0,len(states)))
+    # print(vis)
+    for i in range(0,len(states)): epsilon[mapp_states[states[i]]] = bfs(vis,mapp_states[states[i]],epsilon)
+    # print(epsilon)
+    for i in range(0,len(epsilon)): epsilon[i] = list(dict.fromkeys(epsilon[i]))
+
     for i in range(0,len(states)):
-        state_dict[rstatestring(states[i])] = i
-    print(table)
-    print(states)
-    print(lett)
-    done_states = len(states)
-    print(state_dict)
-    for i in nfa['transition_function']:
-        table[int(i[0][1])+1][lett[i[1]]+1].append(i[2])
-    print(table)
-    for i in table:
-        for j in i:
-            if len(j)==0:
-                j.append('$')
-    print(rstatestring(['Q1','Q0']))
-    print(table)
-    print(states)
-    flag = True
-    total_states = len(states)
-    while(flag):
-        flag = not flag
-        for i in table:
-            # print(i)
-            for j in i:
-                # print("i : " + str(i) + " | j :  "+ str(j))
-                if(rstatestring(j) in state_dict or rstatestring(j) is None or j == []):
-                    # print(rstatestring(j))
-                    pass
-                else:
-                    # print(i,j)
-                    total_states += 1
-                    state_dict[rstatestring(j)] = len(state_dict)
-                    states.append(j)
-                    table.append([j])
-                    # print(table)
-                    for i in lett: table[-1].append([])
-        for i in range(done_states,total_states):
-            done_states +=1
-            
+        transition_matrix[mapp_states[states[i]]][k] = transition_matrix[mapp_states[states[i]]][k] + epsilon[mapp_states[states[i]]]
+        transition_matrix[mapp_states[states[i]]][k] = list(dict.fromkeys(transition_matrix[mapp_states[states[i]]][k]))
 
-    print("--")
-    print(states)
-    print(table)
-    print(state_dict)
+    flen = len(final_states)
+    flett = len(final_letters)
+    for i in range(0,flen):
+        for t in range(0,flett):
+            ans = []
+            tt=mapp_letters[final_letters[t]]
+            for j in final_states[i]:
+                ans = ans + transition_matrix[mapp_states[j]][tt]
+                for ll in transition_matrix[mapp_states[j]][tt]: ans = ans + epsilon[mapp_states[ll]]
+            final_transition_function.append([final_states[i],f"{final_letters[t]}",ans])
+        ans = list(dict.fromkeys(ans))
+        
 
+    # calculating start states
+    for i in range(0,len(start_states)): final_start_state += epsilon[mapp_states[start_states[i]]]
+
+    #calculating final states
+    total_fstate = len(final_states)
+    total_estate = len(end_states)
+    for i in range(0,total_fstate):
+        for j in range(0,total_estate):
+            if end_states[j] in final_states[i]:
+                final_end_states.append(final_states[i])
+                break
+
+    DFA = {
+        "states":final_states,
+        "letters":final_letters,
+        "transition_function":final_transition_function,
+        "start_states": [final_start_state],
+        "final_states": final_end_states
+    }
+                    
+    printout(DFA)
