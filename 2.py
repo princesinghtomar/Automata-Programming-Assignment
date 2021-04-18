@@ -30,7 +30,7 @@ if __name__ == '__main__':
     letters = NFA["letters"].copy()
     final_letters = letters.copy()
     letters.append('$')
-    transition_function = NFA["transition_function"].copy()
+    transition_function = NFA["transition_matrix"].copy()
     start_states = NFA["start_states"].copy()
     end_states = NFA["final_states"].copy()
     epsilon = []
@@ -73,8 +73,11 @@ if __name__ == '__main__':
             for j in final_states[i]:
                 ans = ans + transition_matrix[mapp_states[j]][tt]
                 for ll in transition_matrix[mapp_states[j]][tt]: ans = ans + epsilon[mapp_states[ll]]
+                for h in epsilon[ mapp_states[j] ]:
+                    ans=ans + transition_matrix[mapp_states[h]][tt]
+                    for kk in transition_matrix[mapp_states[h]][tt]: ans=ans + epsilon[mapp_states[kk]]
+            ans = list(dict.fromkeys(ans))
             final_transition_function.append([final_states[i],f"{final_letters[t]}",ans])
-        ans = list(dict.fromkeys(ans))
     for i in range(0,len(start_states)): final_start_state += epsilon[mapp_states[start_states[i]]]
     total_fstate = len(final_states)
     total_estate = len(end_states)
