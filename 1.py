@@ -1,174 +1,289 @@
-import numpy as np
 import json
 import sys
-
-global_stack = []  # start and end states and letters or operation
-state_count = 0
-states = []
-letters = []
-transition_mat = []
-start_state= []
-final_state = []
-SameState = []
-
-OPERATORS = ['+','*', '(', ')','?']
-PRIORITY = {'*':3, '+':1,'?':2}
-
-def infix_to_postfix(regex):
-    stack = []
-    output = ''
-    # string = ''
-    # for i in range(0,len(regex)):
-    #     if (regex[i] not in OPERATORS) and regex[i-1]!= "(" and regex[i-1] != "+":
-    #         string += '?'
-    #     string += regex[i]
-    # print(string)
-    # exit()
-    for i in range(0,len(regex)):
-        print(" i : " + str(i) + " | regex[i] : " + str(regex[i]))
-        if (regex[i] not in OPERATORS) and regex[i-1]!= "(" and regex[i-1] != "+":
-            stack.append('?')
-        if regex[i] not in OPERATORS:
-            output += regex[i]
-        elif regex[i] == '(':
-            stack.append('(')
-        elif regex[i] == ')':
-            while stack and stack[-1] != '(':
-                output += stack.pop()
-            stack.pop() # pop '('
-        else:
-            if stack and regex[i]!='(' and regex[i]!=')' and stack[-1]!='(' and stack[-1]!=')': 
-                print("PRIORITY[regex[i]] <= PRIORITY[stack[-1]] : ",PRIORITY[regex[i]] <= PRIORITY[stack[-1]])
-                print("PRIORITY[regex[i]] : " + str(PRIORITY[regex[i]]))
-                print("PRIORITY[stack[-1]] : " + str(PRIORITY[stack[-1]]))
-            while stack and stack[-1] != '(' and PRIORITY[regex[i]] <= PRIORITY[stack[-1]]:
-                output += stack.pop()
-            stack.append(regex[i])
-        print("Stack : " + str(stack))
-        print("output : " + str(output))
-    # leftover
-    while stack: output += stack.pop()
-    return output
+import numpy as np
+import itertools as it
 
 def getinput():
     try:
-        assert(len(sys.argv)==1)
-        # take input from file
-        # with open(sys.argv[1],'r') as kbc:
-        #     input_regx = json.load(kbc)   # string format it will be a dictionary remember
-        input_regx = {"regex":"a(a+b)*b"}
-        return input_regx["regex"]
+        assert(len(sys.argv)==3)
+        with open(sys.argv[1],'r') as kbc:
+            input_nfa = json.load(kbc)
+        return input_nfa
     except:
         print("Enter Correct Values")
         exit(1)
 
-def printout(output):
-    with open(sys.argv[2],"w") as abc:
-        json.dump(a,abc)
+def printout(DFA):
+    with open(sys.argv[2],"w+") as abc:
+        json.dump(DFA,abc)
 
-def rQState(num):
-    return 'Q' + str(num)
+regularExpression = getinput()
 
-def rStartState(state):
-    s = []
-    for i in state:
-        if(i[3] == 0):
-            s.append(i)
-    return s
+precedence = {'+': 1, '#': 2, '*': 3}
+start_states = []
+NullState = "$"
+final_states = []
+tstates = 0
+NFA = {}
+transition_function = []
+states = []
+letters = []
+exp = regularExpression["regex"]
+componentList = []
+nfrextop = -1
+nfrexarra = []
+converse_top = -1
+converse_array = []
+converse_output = []
 
-def rEndState(state):
-    s = []
-    for i in state:
-        if(i[3] == 1):
-            s.append(i)
-    return s
+def convisEmpty():
+    global converse_top
+    if(converse_top + 1):
+        return False
+    else:
+        return True
 
-def nfa_creation(infix_string):
-    global state_count
-    for i in infix_string:
-        print(i)
-        if(i in OPERATORS):
-            if(i=='*'):
-                # print("Here do i==* Stuff")
-                state_temp = []
-                popState = states.pop()
-                start_S = rStartState(popState)
-                end_S = rEndState(popState)
-                transition_mat.append([rQState(state_count),'$',rQState(state_count+1)])
-                transition_mat.append([end_S[0],'$',start_S[0]])
-                popState.append([rQState(state_count)  , [start_S[0]], i,0])
-                popState.append([rQState(state_count+1)  , [1], i,1])
-                state_count += 2
-                for i in popState:
-                    if(i[0] == start_S[0]):
-                        i[3] = -1
-                    if(i[0] == end_S[0]):
-                        i[3] = -1
-                states.append(popState)
+def convph(op):
+    global converse_top
+    converse_top = 1 + converse_top
+    converse_array.append(op)
 
-            elif(i=='+'):
-                # print("Here do i==+ Stuff")
-                popState1 = states.pop()
-                popState2 = states.pop()
-                start_S1 = rStartState(popState1)
-                end_S1 = rEndState(popState1)
-                start_S2 = rStartState(popState2)
-                end_S2 = rEndState(popState2)
-                transition_mat.append([rQState(state_count),'$',start_S1[0]])
-                transition_mat.append([rQState(state_count),'$',start_S1[0]])
-                transition_mat.append([end_S1[0],'$',rQState(state_count+1)])
-                transition_mat.append([end_S2[0],'$',rQState(state_count+1)])
-                popState.append([rQState(state_count)  , [start_S[0]], i,0])
-                popState.append([rQState(state_count+1)  , [1], i,1])
-                state_count += 2
-                for i in popState1:
-                    if(i[0] == start_S1[0]):
-                        i[3] = -1
-                    if(i[0] == end_S1[0]):
-                        i[3] = -1
-                for i in popState2:
-                    if(i[0] == start_S2[0]):
-                        i[3] = -1
-                    if(i[0] == end_S2[0]):
-                        i[3] = -1
-                states.append(popState)
-            elif(i=='?'):
-                popState1 = states.pop()
-                popState2 = states.pop()
-                start_S1 = rStartState(popState1)
-                end_S1 = rEndState(popState1)
-                start_S2 = rStartState(popState2)
-                end_S2 = rEndState(popState2)
-                transition_mat.append([end_S2[0],'$',start_S1[0]])
-                for i in popState1:
-                    if(i[0] == start_S1[0]):
-                        i[3] = -1
-                for i in popState2:
-                    if(i[0] == end_S2[0]):
-                        i[3] = -1
+def convisoperand(c):
+    if (c>='0' and c<='9') or (c>='a' and c<='z'):
+        return True
+
+def convpeek():
+    if(len(converse_output)>0):
+        return converse_array[-1]
+    else:
+        return ""
+
+def checkgreat(i):
+    global precedence
+    try:
+        b = precedence[convpeek()]
+        a = precedence[i]
+        if(a>b):
+            return False
+        if(a<=b):
+            return True
+    except KeyError:
+        return False    
+
+def convp():
+    global converse_top
+    if not convisEmpty():
+        converse_top = converse_top - 1
+        return converse_array.pop()
+    else:
+        return NullState
+
+def infixToPostfix(exp):
+    global converse_output
+    for i in range(0,len(exp)):
+        if convisoperand(exp[i]):
+            converse_output += exp[i]
+        elif exp[i] == '(':
+            convph(exp[i])
+        elif exp[i] == ')':
+            while( (not convisEmpty()) and convpeek() != '('):
+                converse_output += convp()
+            if (not convisEmpty() and convpeek() != '('):
+                return -1
             else:
-                print("No such operation is handled so Fuck off")
-                exit(1)
+                convp()
+        
+        elif exp[i] == '*':
+            converse_output += exp[i]
+        
         else:
-            if(i not in letters):
-                letters.append(i)
-            # tuple[0] passed gives number of that state
-            # tuple[1] passed gives the states that can be reached from that state in that direction else -1
-            # tuple[2] passed gives the character if present else -1
-            # tuple[3] passed gives the if its start or end state else -1
-            state_temp = []
-            transition_mat.append([rQState(state_count),i,rQState(state_count+1)])
-            state_temp.append([rQState(state_count)  , [1], i,0])
-            state_temp.append([rQState(state_count+1),[-1],-1,1])
-            states.append(state_temp)
-            state_count+=2
+            while(not convisEmpty() and checkgreat(exp[i])):
+                converse_output += convp()
+            convph(exp[i])
 
-if __name__ == "__main__":
-    regex_string = getinput()
-    print(PRIORITY)
-    print(regex_string)
-    infix_string = infix_to_postfix(regex_string)
-    print(infix_string)
-    print("Real Ans : " + str("aab+*?b?"))
-    # nfa_creation(infix_string)
+    while not convisEmpty():
+        converse_output += convp()
+    return converse_output
 
+class other:
+    def __init__(self,exp):
+        self.changed_index = []
+        self.changed_regex = ""
+        self.exp = exp
+
+    def is_alphabet(self,c):
+        if (c>='0' and c<='9') or (c<='z' and c>='a'):
+            return True
+        else:
+            return False
+
+    def add_hash(self):
+        for i in range(0,len(self.exp)-1):
+            if self.exp[i] is ')' and self.is_alphabet(self.exp[i+1]):
+                self.changed_index.append(i)
+            if self.is_alphabet(self.exp[i]) and self.exp[i+1] is '(':
+                self.changed_index.append(i)
+            if self.is_alphabet(self.exp[i]) and self.is_alphabet(self.exp[i+1]):
+                self.changed_index.append(i)
+            if self.exp[i] is ')' and self.exp[i+1] is '(':
+                self.changed_index.append(i)
+            if self.exp[i] is '*' and self.is_alphabet(self.exp[i+1]):
+                self.changed_index.append(i)
+            if self.exp[i] is '*' and self.exp[i+1] is '(':
+                self.changed_index.append(i)
+        
+        self.changed_regex = self.exp
+        
+        for i in range(0,len(self.changed_index)):
+            self.changed_regex = self.changed_regex[:self.changed_index[i]+i+1] + "#" + self.changed_regex[self.changed_index[i]+i+1:]
+        return self.changed_regex
+
+class compo:
+    def __init__(self,start,end):
+        self.start,self.end = start,end
+        
+    def ENd(self):
+        return self.end
+    
+    def STEN(self):
+        return [self.start,self.end]
+
+    def STart(self):
+        return self.start
+
+if len(exp) == 0:
+    states.append("Q0")
+    start_states.append("Q0")
+    NFA["states"]=states
+    NFA["letters"]=letters
+    NFA["transition_matrix"]=transition_function
+    NFA["start_states"]=start_states
+    NFA["final_states"]=final_states
+    printout(NFA)
+    exit(1)
+
+o = other(exp)
+exp = o.add_hash()
+exp = infixToPostfix(exp)
+for i in range(0,len(exp)):
+    if not o.is_alphabet(exp[i]):
+        componentList.append(exp[i])
+    else:
+        tmp1 = compo([tstates],[tstates+1])
+        componentList.append(tmp1)
+        states.append(tstates)
+        states.append(tstates+1)
+        letters.append(exp[i])
+        transition_function.append([f"Q{tstates}",f"{exp[i]}",f"Q{tstates+1}"])
+        tstates = 2 + tstates
+
+nfrextstates = tstates
+
+def nfrexpk():
+    if(len(nfrexarra)>0):
+        return nfrexarra[-1]
+    else:
+        return ""
+
+def nfrexconcat(tmp1,tmp2):
+    start2 = tmp2.STart()
+    start1 = tmp1.STart()
+    end2 = tmp2.ENd()
+    end1 = tmp1.ENd()
+    [transition_function.append( [f"Q{i}",NullState,f"Q{j}"] ) for j in start2 for i in end1]
+    tmp3 = compo(start1,end2)
+    return tmp3
+
+def nfrexnempt():
+    global nfrextop
+    if(nfrextop + 1):
+        return False
+    else:
+        return True
+
+def nfrextempwork(tmp1):
+    global nfrextstates
+    end1 = tmp1.ENd()
+    start1 = tmp1.STart()
+    [transition_function.append( [f"Q{i}",NullState,f"Q{j}"] ) for j in start1 for i in end1]
+    start3 = [nfrextstates]
+    end3 = [1 + nfrextstates]
+    [transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{i}"] ) for i in start1 ]
+    [transition_function.append( [f"Q{i}",NullState,f"Q{nfrextstates+1}"] ) for i in end1 ]
+    transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{nfrextstates+1}"] )
+    states.append(nfrextstates)
+    states.append(nfrextstates+1)
+    nfrextstates = 2 + nfrextstates
+    tmp3 = compo(start3,end3)
+    return tmp3
+
+def nfrexpp():
+    global nfrextop
+    if not nfrexnempt():
+        nfrextop = nfrextop - 1
+        return nfrexarra.pop()
+    else:
+        return NullState
+
+def nfrexmerge(tmp1,tmp2):
+    global nfrextstates
+    states.append(nfrextstates)
+    end1 = tmp1.ENd()
+    end2 = tmp2.ENd()
+    start2 = tmp2.STart()
+    start1 = tmp1.STart()
+    end3 = end1+end2
+    [transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{i}"] ) for i in start1]
+    [transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{i}"] ) for i in start2]
+    start3 = [nfrextstates]
+    tmp3 = compo(start3,end3)
+    nfrextstates = 1 + nfrextstates
+    return tmp3
+
+def nfrexpushit(op):
+    global nfrextop
+    nfrextop = 1 + nfrextop
+    nfrexarra.append(op)
+
+def regToNFA(exp):
+    for i in range(0,len(exp)):
+        if exp[i] is "#":
+            tmp2 = nfrexpk()
+            nfrexpp()
+            tmp1 = nfrexpk()
+            nfrexpp()
+            tmp3 = nfrexconcat(tmp1,tmp2)
+            nfrexpushit(tmp3)
+        elif exp[i] is "*":
+            tmp1 = nfrexpk()
+            nfrexpp()
+            tmp2 = nfrextempwork(tmp1)
+            nfrexpushit(tmp2)
+        elif exp[i] is "+":
+            tmp2 = nfrexpk()
+            nfrexpp()
+            tmp1 = nfrexpk()
+            nfrexpp()
+            tmp3 = nfrexmerge(tmp1,tmp2)
+            nfrexpushit(tmp3)
+        else:
+            nfrexpushit(exp[i])
+    return nfrexpk()
+
+FinalComponent = regToNFA(componentList)
+start_states = FinalComponent.STart()
+start_states = [f"Q{start_states[i]}" for i in range(0,len(start_states))]
+final_states = FinalComponent.ENd()
+final_states = [f"Q{final_states[i]}" for i in range(0,len(final_states))]
+letters = [i for i in dict.fromkeys(letters)]
+
+States = []
+[States.append(f"Q{states[i]}") for i in range(0,len(states))]
+
+NFA["states"]= States
+NFA["letters"]= letters
+NFA["transition_matrix"]= transition_function
+NFA["start_states"]= start_states
+NFA["final_states"]= final_states
+
+printout(NFA)
