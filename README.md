@@ -32,3 +32,5 @@
 - Divide States in 2 parts one which are not Final and Final States
 - Follow the Theorem
 - Got the minimized DFA
+
+Video Link : https://iiitaphyd-my.sharepoint.com/:v:/g/personal/prince_tomar_students_iiit_ac_in/EbkBsvCVo9BHpzp28Ms4VpgB9kZlk_ZdYR-lBZ3zBsBynw?e=VGSXbv
