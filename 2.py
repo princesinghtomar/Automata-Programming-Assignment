@@ -5,7 +5,7 @@ import itertools as it
 
 def printout(DFA):
     with open(sys.argv[2],"w+") as abc:
-        json.dump(DFA,abc)
+        json.dump(DFA,abc,indent=4)
 
 def getinput():
     try:
@@ -30,7 +30,7 @@ if __name__ == '__main__':
     letters = NFA["letters"].copy()
     final_letters = letters.copy()
     letters.append('$')
-    transition_function = NFA["transition_matrix"].copy()
+    transition_function = NFA["transition_function"].copy()
     start_states = NFA["start_states"].copy()
     end_states = NFA["final_states"].copy()
     epsilon = []

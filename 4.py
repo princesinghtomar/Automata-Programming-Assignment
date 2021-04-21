@@ -20,7 +20,7 @@ def getinput():
         print("Enter Correct Values")
         exit(1)
 
-list_of_dict = ["start_states","letters","states","transition_matrix","final_states"]
+list_of_dict = ["start_states","letters","states","transition_function","final_states"]
 
 class Dfa:
     def __init__(self, data):
@@ -43,7 +43,7 @@ class Dfa:
             if self.visited[transition[2]] == False: self.visited[transition[2]] = True
         for state in range(0,len(self.states)):
             if self.states[state] not in self.final_state: self.Nonfinal.append(self.states[state])
-        print(self.Nonfinal, self.final_state, self.visited)
+        # print(self.Nonfinal, self.final_state, self.visited)
 
     def MiniMize(self):
         dire = {}
@@ -99,7 +99,7 @@ class Dfa:
         # for state in self.states:
         #     print(state[0])
         Combind.sort()
-        print(Combind)
+        # print(Combind)
         New_States = []
         Visited = [False]*len(Combind)
         # Visited = [False for i in len(Combind)]
@@ -122,8 +122,8 @@ class Dfa:
         self.Print[list_of_dict[2]] = [list(ss) for ss in New_States]
         self.Print[list_of_dict[1]] = list(self.letters)
         self.Print[list_of_dict[3]] = []
-        print(type(New_States))
-        print(type(self.letters))
+        # print(type(New_States))
+        # print(type(self.letters))
         for state in range(0,len(New_States)):
             # state=list(list(ss) for ss in New_States[i])
             # print(state)
@@ -146,12 +146,12 @@ class Dfa:
         new_final_state = set([])
         for state in range(0,len(self.final_state)):
             # state=[state]
-            print(self.final_state[state])
+            # print(self.final_state[state])
             for check in New_States:
                 if self.final_state[state] in check: new_final_state.add(tuple(check))
 
         self.Print[list_of_dict[4]] = list(new_final_state)
-        print(self.Print)
+        # print(self.Print)
 
         printout(self.Print)
 
