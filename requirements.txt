@@ -1,0 +1,2 @@
+more-itertools==4.2.0
+numpy==1.19.5
