@@ -15,7 +15,7 @@ def getinput():
 
 def printout(DFA):
     with open(sys.argv[2],"w+") as abc:
-        json.dump(DFA,abc)
+        json.dump(DFA,abc,indent=4)
 
 regularExpression = getinput()
 
@@ -152,8 +152,8 @@ class compo:
         return self.start
 
 if len(exp) == 0:
-    states.append("Q0")
-    start_states.append("Q0")
+    states.append("q0")
+    start_states.append("q0")
     NFA["states"]=states
     NFA["letters"]=letters
     NFA["transition_matrix"]=transition_function
@@ -174,7 +174,7 @@ for i in range(0,len(exp)):
         states.append(tstates)
         states.append(tstates+1)
         letters.append(exp[i])
-        transition_function.append([f"Q{tstates}",f"{exp[i]}",f"Q{tstates+1}"])
+        transition_function.append([f"q{tstates}",f"{exp[i]}",f"q{tstates+1}"])
         tstates = 2 + tstates
 
 nfrextstates = tstates
@@ -190,7 +190,7 @@ def nfrexconcat(tmp1,tmp2):
     start1 = tmp1.STart()
     end2 = tmp2.ENd()
     end1 = tmp1.ENd()
-    [transition_function.append( [f"Q{i}",NullState,f"Q{j}"] ) for j in start2 for i in end1]
+    [transition_function.append( [f"q{i}",NullState,f"q{j}"] ) for j in start2 for i in end1]
     tmp3 = compo(start1,end2)
     return tmp3
 
@@ -205,12 +205,12 @@ def nfrextempwork(tmp1):
     global nfrextstates
     end1 = tmp1.ENd()
     start1 = tmp1.STart()
-    [transition_function.append( [f"Q{i}",NullState,f"Q{j}"] ) for j in start1 for i in end1]
+    [transition_function.append( [f"q{i}",NullState,f"q{j}"] ) for j in start1 for i in end1]
     start3 = [nfrextstates]
     end3 = [1 + nfrextstates]
-    [transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{i}"] ) for i in start1 ]
-    [transition_function.append( [f"Q{i}",NullState,f"Q{nfrextstates+1}"] ) for i in end1 ]
-    transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{nfrextstates+1}"] )
+    [transition_function.append( [f"q{nfrextstates}",NullState,f"q{i}"] ) for i in start1 ]
+    [transition_function.append( [f"q{i}",NullState,f"q{nfrextstates+1}"] ) for i in end1 ]
+    transition_function.append( [f"q{nfrextstates}",NullState,f"q{nfrextstates+1}"] )
     states.append(nfrextstates)
     states.append(nfrextstates+1)
     nfrextstates = 2 + nfrextstates
@@ -233,8 +233,8 @@ def nfrexmerge(tmp1,tmp2):
     start2 = tmp2.STart()
     start1 = tmp1.STart()
     end3 = end1+end2
-    [transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{i}"] ) for i in start1]
-    [transition_function.append( [f"Q{nfrextstates}",NullState,f"Q{i}"] ) for i in start2]
+    [transition_function.append( [f"q{nfrextstates}",NullState,f"q{i}"] ) for i in start1]
+    [transition_function.append( [f"q{nfrextstates}",NullState,f"q{i}"] ) for i in start2]
     start3 = [nfrextstates]
     tmp3 = compo(start3,end3)
     nfrextstates = 1 + nfrextstates
@@ -272,13 +272,13 @@ def regToNFA(exp):
 
 FinalComponent = regToNFA(componentList)
 start_states = FinalComponent.STart()
-start_states = [f"Q{start_states[i]}" for i in range(0,len(start_states))]
+start_states = [f"q{start_states[i]}" for i in range(0,len(start_states))]
 final_states = FinalComponent.ENd()
-final_states = [f"Q{final_states[i]}" for i in range(0,len(final_states))]
+final_states = [f"q{final_states[i]}" for i in range(0,len(final_states))]
 letters = [i for i in dict.fromkeys(letters)]
 
 States = []
-[States.append(f"Q{states[i]}") for i in range(0,len(states))]
+[States.append(f"q{states[i]}") for i in range(0,len(states))]
 
 NFA["states"]= States
 NFA["letters"]= letters

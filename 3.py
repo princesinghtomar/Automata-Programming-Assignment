@@ -116,11 +116,11 @@ while(len(gnfa[list_of_dict[2]])>2):
                         r4=''
                     else:
                         r4 = arr[2] + '(' + str(r4) + ')'
-                    transition = [i,r,j]
                     r = r1
                     r = r + r2
                     r = r + r3
                     r = r + r4
+                    transition = [i,r,j]
                     tmp_transition.append(transition)
         break
     tmp_state = []
